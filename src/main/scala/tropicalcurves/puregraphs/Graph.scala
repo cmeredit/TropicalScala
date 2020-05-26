@@ -44,6 +44,20 @@ class Graph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], val legs: 
     }
   })
 
+  def isConnected: Boolean = spanningForest.size == 1
+
+  def DFS(condition: Vertex[A] => Boolean, v: Vertex[A]): Option[Vertex[A]] = {
+    DFS(condition, getTreeAt(v))
+  }
+
+  def DFS(condition: Vertex[A] => Boolean, searchTree: Tree[A]): Option[Vertex[A]] = {
+    if (condition(searchTree.root)) Some(searchTree.root)
+    else searchTree.connectedForest.foldLeft[Option[Vertex[A]]](None)((currentResult, nextTree) => currentResult match {
+      case Some(_) => currentResult
+      case None => DFS(condition, nextTree)
+    })
+  }
+
   def adjacentVertices(v: Vertex[A]): Set[Vertex[A]] = if (adjacency.keySet.contains(v)) {
     adjacency(v).map(_._1)
   } else {
