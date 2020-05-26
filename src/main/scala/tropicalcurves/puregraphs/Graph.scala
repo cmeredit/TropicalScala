@@ -4,6 +4,14 @@ package tropicalcurves.puregraphs
 // Type B: Lengths of edges
 class Graph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], val legs: Set[Leg[A]]) {
   val vertices: Set[Vertex[A]] = adjacency.keySet ++ legs.flatMap(_.vertices)
+  val numEdges: Int = adjacency.map(_._2.size).sum
+  val numLegs: Int = legs.size
+
+  def adjacentVertices(v: Vertex[A]): Set[Vertex[A]] = if (adjacency.keySet.contains(v)) {
+    adjacency(v).map(_._1)
+  } else {
+    Set()
+  }
 
   // Counts the number of endpoints of finite edges at v
   def edgeDegree(v: Vertex[A]): Int = adjacency(v).size + adjacency(v).count(_._1 == v)
