@@ -1,10 +1,12 @@
 package tropicalcurves.puregraphs
 
-class Graph[A](val manualVertices: Set[Vertex[A]], val edges: Set[Edge[A]], val legs: Set[Leg[A]]) {
-  val vertices: Set[Vertex[A]] = manualVertices ++ edges.flatMap(_.vertices) ++ legs.flatMap(_.vertices)
+// Type A: Data held by vertices
+// Type B: Lengths of edges
+class Graph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], val legs: Set[Leg[A]]) {
+  val vertices: Set[Vertex[A]] = adjacency.keySet ++ legs.flatMap(_.vertices)
 
   // Counts the number of endpoints of finite edges at v
-  def edgeDegree(v: Vertex[A]): Int = edges.count(_._1 == v) + edges.count(_._2 == v)
+  def edgeDegree(v: Vertex[A]): Int = adjacency(v).size + adjacency(v).count(_._1 == v)
 
   // Counts the number of legs rooted at v
   def legDegree(v: Vertex[A]): Int = legs.count(_.root == v)
@@ -12,5 +14,5 @@ class Graph[A](val manualVertices: Set[Vertex[A]], val edges: Set[Edge[A]], val 
   // Counts the endpoints of (possibly infinite) edges at v
   def degree(v: Vertex[A]): Int = edgeDegree(v) + legDegree(v)
 
-  override def toString: String = s"Vertices: $manualVertices\nEdges: $edges\nLegs: $legs"
+  override def toString: String = s"Vertices: $vertices\nAdjacency List: $adjacency\nLegs: $legs"
 }
