@@ -14,6 +14,9 @@ class TropicalCurve[B](adjacency: Map[Vertex[Int], Set[(Vertex[Int], B)]], legs:
     }
   }
 
+  lazy val bettiNumber: Int = numEdges - numVertices + 1
+  lazy val genus: Int = bettiNumber + vertices.map(_.data).sum
+
 }
 
 object TropicalCurve {
