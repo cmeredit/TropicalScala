@@ -90,5 +90,8 @@ class Graph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], val legs: 
   // Counts the endpoints of (possibly infinite) edges at v
   def degree(v: Vertex[A]): Int = edgeDegree(v) + legDegree(v)
 
+  // Counts the number of edges connecting v to w
+  def numEdges(v: Vertex[A], w: Vertex[A]): Int = adjacency(v).count(_._1 == w)
+
   override def toString: String = s"Vertices: $vertices\nAdjacency List: $adjacency\nLegs: $legs"
 }

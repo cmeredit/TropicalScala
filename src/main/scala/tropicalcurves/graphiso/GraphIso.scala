@@ -36,12 +36,10 @@ object GraphIso {
                                            bij: Map[Vertex[A], Vertex[A]]): Boolean = {
     val domainVertexPairs: Set[(Vertex[A], Vertex[A])] = for (v <- domain.vertices;
                                                               w <- domain.vertices) yield (v, w)
-    conditionHoldsForAll(domainVertexPairs)(vertexPair => {
+    conditionHoldsForAll(domainVertexPairs)((vertexPair => {
       val (v, w) = vertexPair
-      val numInputEdges: Int = domain.adjacency(v).count(_._1 == w)
-      val numOutputEdges: Int = codomain.adjacency(bij(v)).count(_._1 == bij(w))
-      numInputEdges == numOutputEdges
-    })
+      domain.numEdges(v, w) == codomain.numEdges(bij(v), bij(w))
+    }))
   }
 
   def checkIfBijectionPreservesData[A, B](domain: Graph[A, B], bij: Map[Vertex[A], Vertex[A]]): Boolean = {
