@@ -4,6 +4,7 @@ package tropicalcurves.puregraphs
 // Type B: Lengths of edges
 class Graph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], val legs: Set[Leg[A]]) {
   val vertices: Set[Vertex[A]] = adjacency.keySet ++ legs.flatMap(_.vertices)
+  val numVertices: Int = vertices.size
   val numEdges: Int = adjacency.map(_._2.size).sum
   val numLegs: Int = legs.size
 
