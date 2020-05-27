@@ -1,0 +1,5 @@
+package tropicalcurves
+
+object GraphIso {
+
+}
