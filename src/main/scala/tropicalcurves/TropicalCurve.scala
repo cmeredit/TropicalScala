@@ -6,11 +6,11 @@ class TropicalCurve[B](adjacency: Map[Vertex[Int], Set[(Vertex[Int], B)]], legs:
 
   val core: TropicalCurve[B] = {
     val leavesToPrune = vertices.filter(degree(_) < 2).filter(_.data == 0)
-    if (leavesToPrune.isEmpty) {
+    if (leavesToPrune.isEmpty && legs.isEmpty) {
       this
     } else {
-      import TropicalCurve.realizeAsCurve
-      filterOutVertices(leavesToPrune).core
+      val graphWithPrunedLeaves = filterOutVertices(leavesToPrune)
+      new TropicalCurve[B](graphWithPrunedLeaves.adjacency, Set())
     }
   }
 
