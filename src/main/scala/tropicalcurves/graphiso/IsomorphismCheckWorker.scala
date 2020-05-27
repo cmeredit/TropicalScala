@@ -7,7 +7,7 @@ import akka.actor.typed.scaladsl.Behaviors
 
 object IsomorphismCheckWorker {
   def apply(): Behavior[IsoMessage] =
-    Behaviors.setup[IsoMessage](context => new IsomorphismCheckWorker()(context))
+    Behaviors.setup[IsoMessage](context => new IsomorphismCheckWorker(context))
 }
 
 class IsomorphismCheckWorker(context: ActorContext[IsoMessage]) extends AbstractBehavior[IsoMessage](context) {
