@@ -8,6 +8,13 @@ class Graph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], val legs: 
   val numEdges: Int = adjacency.map(_._2.size).sum
   val numLegs: Int = legs.size
 
+  val verticesByCharacteristic: Map[(Int, Int, A), Set[Vertex[A]]] = {
+    val keys: Set[(Int, Int, A)] = vertices.map(v => (edgeDegree(v), legDegree(v), v.data))
+    keys.map(k => k -> vertices.filter(v => (k == (edgeDegree(v), legDegree(v), v.data)))).toMap
+  }
+
+  val numVerticesWithCharacteristic: Map[(Int, Int, A), Int] = verticesByCharacteristic.map(kv => kv._1 -> kv._2.size)
+
   def filterOutVertices(verts: Set[Vertex[A]]): Graph[A, B] = {
     val newAdjacency: Map[Vertex[A], Set[(Vertex[A], B)]] = adjacency
       .filterNot(kv => verts.contains(kv._1)) // Filter out verts from the keys

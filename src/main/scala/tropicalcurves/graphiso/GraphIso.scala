@@ -7,6 +7,8 @@ object GraphIso {
     if (g.numVertices != h.numVertices) false
     else if (g.numEdges != h.numEdges) false
     else if (g.numLegs != h.numLegs) false
+    else if (g.spanningForest.size != h.spanningForest.size) false
+    else if (g.numVerticesWithCharacteristic != h.numVerticesWithCharacteristic) false
     else checkBruteForceForIsomorphism(g, h)
   }
 
