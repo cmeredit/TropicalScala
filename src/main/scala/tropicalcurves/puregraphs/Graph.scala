@@ -4,6 +4,7 @@ package tropicalcurves.puregraphs
 // Type B: Lengths of edges
 class Graph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], val legs: Set[Leg[A]]) {
   val vertices: Set[Vertex[A]] = adjacency.keySet ++ legs.flatMap(_.vertices)
+  val numVertices: Int = vertices.size
   val numEdges: Int = adjacency.map(_._2.size).sum
   val numLegs: Int = legs.size
 
@@ -45,6 +46,13 @@ class Graph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], val legs: 
   })
 
   def isConnected: Boolean = spanningForest.size == 1
+
+  def DFS(condition: Vertex[A] => Boolean): Option[Vertex[A]] = {
+    spanningForest.foldLeft[Option[Vertex[A]]](None)((currentResult, nextTree) => currentResult match {
+      case Some(_) => currentResult
+      case None => DFS(condition, nextTree)
+    })
+  }
 
   def DFS(condition: Vertex[A] => Boolean, v: Vertex[A]): Option[Vertex[A]] = {
     DFS(condition, getTreeAt(v))
