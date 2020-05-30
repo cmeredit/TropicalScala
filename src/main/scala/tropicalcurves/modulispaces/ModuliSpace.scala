@@ -5,7 +5,7 @@ import tropicalcurves.puregraphs._
 
 class ModuliSpace(val g: Int, val n: Int) {
 
-  def getGenusSpecialization(g: Graph[Int, Double], v: Vertex[Int]): Option[Graph[Int, Double]] = {
+  def getGenusSpecialization(g: UndirectedGraph[Int, Double], v: Vertex[Int]): Option[UndirectedGraph[Int, Double]] = {
     if (!g.vertices.contains(v) || v.data < 1) None
     else {
       if (v.data > 1 || g.degree(v) > 0) Some({
@@ -35,14 +35,14 @@ class ModuliSpace(val g: Int, val n: Int) {
           } else kv
         })
 
-        new Graph(newAdjacency, newLegs)
+        new UndirectedGraph(newAdjacency, newLegs)
       })
       else None
     }
   }
 
-  def getSplittingSpecialization(g: Graph[Int, Double], v: Vertex[Int], g1: Int, g2: Int,
-                                 S: Set[Vertex[Int]], T: Set[Vertex[Int]]): Option[Graph[Int, Double]] = {
+  def getSplittingSpecialization(g: UndirectedGraph[Int, Double], v: Vertex[Int], g1: Int, g2: Int,
+                                 S: Set[Vertex[Int]], T: Set[Vertex[Int]]): Option[UndirectedGraph[Int, Double]] = {
     val canSplit = g.vertices.contains(v) && // g must have v as a vertex
     g.adjacentVertices(v) == S ++ T && // S and T must cover the adjacent ????? of v
     S.intersect(T).isEmpty &&

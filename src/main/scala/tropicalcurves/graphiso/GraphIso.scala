@@ -60,7 +60,7 @@ object GraphIso {
     else Some(inputs.indices.map(i => inputs(i) -> outputs(i)).toMap)
   }
 
-  private def getBijections[A, B](domain: Graph[A, B], codomain: Graph[A, B]): Option[Vector[Map[Vertex[A], Vertex[A]]]] = {
+  private def getBijections[A, B](domain: UndirectedGraph[A, B], codomain: UndirectedGraph[A, B]): Option[Vector[Map[Vertex[A], Vertex[A]]]] = {
     if (domain.numVertices != codomain.numVertices) None
     else {
       val inputs: Vector[Vertex[A]] = domain.vertices.toVector
@@ -85,7 +85,7 @@ object GraphIso {
     })
   }
 
-  def checkIfBijectionPreservesEdges[A, B](domain: Graph[A, B], codomain: Graph[A, B],
+  def checkIfBijectionPreservesEdges[A, B](domain: UndirectedGraph[A, B], codomain: UndirectedGraph[A, B],
                                            bij: Map[Vertex[A], Vertex[A]]): Boolean = {
     val domainVertexPairs: Set[(Vertex[A], Vertex[A])] = for (v <- domain.vertices;
                                                               w <- domain.vertices) yield (v, w)
@@ -95,16 +95,16 @@ object GraphIso {
     })
   }
 
-  def checkIfBijectionPreservesData[A, B](domain: Graph[A, B], bij: Map[Vertex[A], Vertex[A]]): Boolean = {
+  def checkIfBijectionPreservesData[A, B](domain: UndirectedGraph[A, B], bij: Map[Vertex[A], Vertex[A]]): Boolean = {
     conditionHoldsForAll(domain.vertices)(v => v.data == bij(v).data)
   }
 
-  def checkIfBijectionPreservesLegs[A, B](domain: Graph[A, B], codomain: Graph[A, B],
+  def checkIfBijectionPreservesLegs[A, B](domain: UndirectedGraph[A, B], codomain: UndirectedGraph[A, B],
                                           bij: Map[Vertex[A], Vertex[A]]): Boolean = {
     conditionHoldsForAll(domain.vertices)(v => domain.legDegree(v) == codomain.legDegree(bij(v)))
   }
 
-  def checkIfBijectionIsIsomorphism[A, B](domain: Graph[A, B], codomain: Graph[A, B],
+  def checkIfBijectionIsIsomorphism[A, B](domain: UndirectedGraph[A, B], codomain: UndirectedGraph[A, B],
                                           bij: Map[Vertex[A], Vertex[A]]): Boolean = {
     checkIfBijectionPreservesEdges(domain, codomain, bij) &&
       checkIfBijectionPreservesData(domain, bij) &&
@@ -113,21 +113,21 @@ object GraphIso {
 
 
 
-  def graphsAreIsomorphic[A, B](g: Graph[A, B], h: Graph[A, B]): Boolean = {
+  def graphsAreIsomorphic[A, B](g: UndirectedGraph[A, B], h: UndirectedGraph[A, B]): Boolean = {
     if (g.spanningForest.size != h.spanningForest.size) false // Number of connected components
     else if (g.numVerticesWithCharacteristic != h.numVerticesWithCharacteristic) false // Counts of vertices by char.
     else checkBruteForceForIsomorphism(g, h) // Easy tests failed - have to brute force
   }
 
-  private def checkBruteForceForIsomorphism[A, B](g: Graph[A, B], h: Graph[A, B]): Boolean = {
+  private def checkBruteForceForIsomorphism[A, B](g: UndirectedGraph[A, B], h: UndirectedGraph[A, B]): Boolean = {
     getBijections[A, B](g, h) match {
       case None => false
       case Some(v) => conditionHoldsForSome(v)(bij => checkIfBijectionIsIsomorphism(g, h, bij))
     }
   }
 
-  def reduceGraphsByIsomorphism[A, B](graphs: Vector[Graph[A, B]]): Vector[Graph[A, B]] = {
-    graphs.foldLeft(Vector[Graph[A, B]]())((currentIsotypes, nextGraph) => {
+  def reduceGraphsByIsomorphism[A, B](graphs: Vector[UndirectedGraph[A, B]]): Vector[UndirectedGraph[A, B]] = {
+    graphs.foldLeft(Vector[UndirectedGraph[A, B]]())((currentIsotypes, nextGraph) => {
       val graphIsNew = conditionHoldsForAll(currentIsotypes)(isotype => !graphsAreIsomorphic(isotype, nextGraph))
       
       if (graphIsNew) currentIsotypes.appended(nextGraph)
@@ -137,15 +137,15 @@ object GraphIso {
 
   // Does NOT reduce uniqueGraphs by isomorphism
   // Only adds a graph from newGraphs to uniqueGraphs if it is not already present in uniqueGraphs up to isomorphism
-  def assimilateNewGraphs[A, B](uniqueGraphs: Vector[Graph[A, B]],
-                                newGraphs: Vector[Graph[A, B]]): Future[Vector[Graph[A, B]]] = {
-    val newGraphsReduced: Vector[Future[Option[Graph[A, B]]]] = reduceGraphsByIsomorphism(newGraphs).map(h => Future {
+  def assimilateNewGraphs[A, B](uniqueGraphs: Vector[UndirectedGraph[A, B]],
+                                newGraphs: Vector[UndirectedGraph[A, B]]): Future[Vector[UndirectedGraph[A, B]]] = {
+    val newGraphsReduced: Vector[Future[Option[UndirectedGraph[A, B]]]] = reduceGraphsByIsomorphism(newGraphs).map(h => Future {
       if (conditionHoldsForAll(uniqueGraphs)(g => !graphsAreIsomorphic(g, h))) Some(h)
       else None
     })
 
-    val futureOfOptions: Future[Vector[Option[Graph[A, B]]]] = Future.sequence(newGraphsReduced)
-    val futureOfGraphs: Future[Vector[Graph[A, B]]] = futureOfOptions.map {
+    val futureOfOptions: Future[Vector[Option[UndirectedGraph[A, B]]]] = Future.sequence(newGraphsReduced)
+    val futureOfGraphs: Future[Vector[UndirectedGraph[A, B]]] = futureOfOptions.map {
       case lst => uniqueGraphs ++ lst.flatten
       case _ => uniqueGraphs
     }

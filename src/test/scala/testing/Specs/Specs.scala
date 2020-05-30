@@ -15,7 +15,7 @@ class Specs extends FlatSpec with Matchers {
     val v5 = Vertex(1, Some("v5"))
     val leg1 = new Leg(v5, Some("Leg 1"))
     val leg2 = new Leg(v1, Some("Leg 2"))
-    val graph = new Graph[Int, Double](Map(
+    val graph = new UndirectedGraph[Int, Double](Map(
       v1 -> Set((v1, 1.0), (v2, 1.0), (v4, 1.0)),
       v2 -> Set((v1, 1.0)),
       v3 -> Set((v4, 1.0)),

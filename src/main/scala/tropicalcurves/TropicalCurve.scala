@@ -2,7 +2,7 @@ package tropicalcurves
 
 import tropicalcurves.puregraphs._
 
-class TropicalCurve[B](adjacency: Map[Vertex[Int], Set[(Vertex[Int], B)]], legs: Set[Leg[Int]]) extends Graph[Int, B](adjacency, legs) {
+class TropicalCurve[B](adjacency: Map[Vertex[Int], Set[(Vertex[Int], B)]], legs: Set[Leg[Int]]) extends UndirectedGraph[Int, B](adjacency, legs) {
 
   val core: TropicalCurve[B] = {
     val leavesToPrune = vertices.filter(degree(_) < 2).filter(_.data == 0)
@@ -20,7 +20,7 @@ class TropicalCurve[B](adjacency: Map[Vertex[Int], Set[(Vertex[Int], B)]], legs:
 }
 
 object TropicalCurve {
-  implicit def realizeAsCurve[B](g: Graph[Int, B]): TropicalCurve[B] = {
+  implicit def realizeAsCurve[B](g: UndirectedGraph[Int, B]): TropicalCurve[B] = {
     new TropicalCurve[B](g.adjacency, g.legs)
   }
 }

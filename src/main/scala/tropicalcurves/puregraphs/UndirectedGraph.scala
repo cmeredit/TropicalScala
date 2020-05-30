@@ -2,7 +2,7 @@ package tropicalcurves.puregraphs
 
 // Type A: Data held by vertices
 // Type B: Lengths of edges
-class Graph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], val legs: Set[Leg[A]]) {
+class UndirectedGraph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], val legs: Set[Leg[A]]) {
   val vertices: Set[Vertex[A]] = adjacency.keySet ++ legs.flatMap(_.vertices)
   val numVertices: Int = vertices.size
   val numEdges: Int = adjacency.map(_._2.size).sum
@@ -15,15 +15,15 @@ class Graph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], val legs: 
 
   val numVerticesWithCharacteristic: Map[(Int, Int, A), Int] = verticesByCharacteristic.map(kv => kv._1 -> kv._2.size)
 
-  def filterOutVertices(verts: Set[Vertex[A]]): Graph[A, B] = {
+  def filterOutVertices(verts: Set[Vertex[A]]): UndirectedGraph[A, B] = {
     val newAdjacency: Map[Vertex[A], Set[(Vertex[A], B)]] = adjacency
       .filterNot(kv => verts.contains(kv._1)) // Filter out verts from the keys
       .map(kv => kv._1 -> kv._2.filterNot(kv => verts.contains(kv._1))) // Filter out verts from the values
     val newLegs: Set[Leg[A]] = legs.filterNot(leg => verts.contains(leg.root)) // Filter out legs with their root in vert
-    new Graph(newAdjacency, newLegs)
+    new UndirectedGraph(newAdjacency, newLegs)
   }
 
-  def filterOutVertex(v: Vertex[A]): Graph[A, B] = {
+  def filterOutVertex(v: Vertex[A]): UndirectedGraph[A, B] = {
     filterOutVertices(Set(v))
   }
 
