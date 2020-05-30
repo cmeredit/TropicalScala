@@ -83,7 +83,7 @@ class UndirectedGraph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], 
   def adjacentVertices(v: Vertex[A]): Set[Vertex[A]] = if (adjacency.keySet.contains(v)) {
     adjacency(v).map(_._1) ++ adjacency.keySet.filter(vert => adjacency(vert).map(_._1).contains(v))
   } else {
-    Set()
+    adjacency.keySet.filter(vert => adjacency(vert).map(_._1).contains(v))
   }
 
   def adjacentDistinctVertices(v: Vertex[A]): Set[Vertex[A]] = adjacentVertices(v) - v
