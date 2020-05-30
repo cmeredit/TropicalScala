@@ -86,8 +86,9 @@ class UndirectedGraph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], 
 
   def adjacentDistinctVertices(v: Vertex[A]): Set[Vertex[A]] = adjacentVertices(v) - v
 
-  // Counts the number of endpoints of finite edges at v
-  def edgeDegree(v: Vertex[A]): Int = adjacency(v).size + adjacency(v).count(_._1 == v)
+  // Counts the number of endpoints of finite edges at v: Number of things v points to, plus number of things that point
+  // to v
+  def edgeDegree(v: Vertex[A]): Int = adjacency(v).size + vertices.count(vert => adjacency(vert).map(_._1).contains(v))
 
   // Counts the number of legs rooted at v
   def legDegree(v: Vertex[A]): Int = legs.count(_.root == v)
@@ -96,7 +97,7 @@ class UndirectedGraph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], 
   def degree(v: Vertex[A]): Int = edgeDegree(v) + legDegree(v)
 
   // Counts the number of edges connecting v to w
-  def numEdges(v: Vertex[A], w: Vertex[A]): Int = adjacency(v).count(_._1 == w)
+  def numEdges(v: Vertex[A], w: Vertex[A]): Int = adjacency(v).count(_._1 == w) + adjacency(w).count(_._1 == v)
 
   override def toString: String = s"Vertices: $vertices\nAdjacency List: $adjacency\nLegs: $legs"
 }
