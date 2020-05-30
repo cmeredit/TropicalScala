@@ -1,7 +1,38 @@
 package tropicalcurves.graphiso
+
+import akka.actor.typed.{ActorRef, ActorSystem}
+import akka.actor.typed.scaladsl.AskPattern._
+import akka.util.Timeout
+
+import scala.concurrent.duration._
 import tropicalcurves.puregraphs._
 
+import scala.concurrent.Future
+import scala.util.Success
+
+
 object GraphIso {
+
+
+  implicit val isoSupervisor: ActorSystem[IsoMessage] = ActorSystem(IsomorphismCheckSupervisor(), "IsoSupervisor")
+  implicit val ec = isoSupervisor.executionContext
+  implicit val timeout = Timeout(5.seconds)
+
+  def makeSupervisorMimic(message: String): Unit = {
+
+//    val result: Future[IsoMessage] = isoSupervisor.ask((ref: ActorRef[IsoMessage]) => Mimic(message, ref))
+//    result.onComplete {
+//      case Success(Mimic2(msg)) => println(s"Received back $msg")
+//      case _ => println("Noooooooooo!!!!!!!")
+//    }
+  }
+
+  def printGraphs[A, B](graphs: Vector[Graph[A, B]]): Unit = {
+    isoSupervisor ! ReduceGraphsByIsomorphism(graphs)
+  }
+
+  def shutdownSystem(): Unit = isoSupervisor.terminate()
+
 
   // Type A should be the characteristic of a vertex
   // Type B should be Vertex
