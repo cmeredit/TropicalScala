@@ -3,6 +3,9 @@ package tropicalcurves
 import tropicalcurves.graphiso.GraphIso
 import tropicalcurves.puregraphs._
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
 object Main extends App {
 
   val v = Vertex(0, Some("Joe"))
@@ -31,4 +34,12 @@ object Main extends App {
 
   println(GraphIso.getBijections[Int, Int](Map(0 -> Vector(Vector(0, 1), Vector(1, 0)), 1 -> Vector(Vector(2, 3), Vector(3, 2)))))
 
+  val myFutureGraphs = GraphIso.assimilateNewGraphs(Vector(g1), Vector(g1.filterOutVertex(v), g1, g1, g1, g1))
+
+  println("Reducing graphs!!!")
+  val reducedGraphs = Await.result(myFutureGraphs, 3.seconds)
+  reducedGraphs.foreach(g => {
+    println(g)
+    println("Next graph...")
+  })
 }

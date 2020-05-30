@@ -137,7 +137,8 @@ object GraphIso {
 
   // Does NOT reduce uniqueGraphs by isomorphism
   // Only adds a graph from newGraphs to uniqueGraphs if it is not already present in uniqueGraphs up to isomorphism
-  def assimilateNewGraphs[A, B](uniqueGraphs: Vector[Graph[A, B]], newGraphs: Vector[Graph[A, B]]): Future[Vector[Graph[A, B]]] = {
+  def assimilateNewGraphs[A, B](uniqueGraphs: Vector[Graph[A, B]],
+                                newGraphs: Vector[Graph[A, B]]): Future[Vector[Graph[A, B]]] = {
     val newGraphsReduced: Vector[Future[Option[Graph[A, B]]]] = reduceGraphsByIsomorphism(newGraphs).map(h => Future {
       if (conditionHoldsForAll(uniqueGraphs)(g => !graphsAreIsomorphic(g, h))) Some(h)
       else None
