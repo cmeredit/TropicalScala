@@ -7,7 +7,7 @@ import akka.util.Timeout
 import scala.concurrent.duration._
 import tropicalcurves.puregraphs._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.util.Success
 
 
@@ -15,8 +15,8 @@ object GraphIso {
 
 
   implicit val isoSupervisor: ActorSystem[IsoMessage] = ActorSystem(IsomorphismCheckSupervisor(), "IsoSupervisor")
-  implicit val ec = isoSupervisor.executionContext
-  implicit val timeout = Timeout(5.seconds)
+  implicit val ec: ExecutionContextExecutor = isoSupervisor.executionContext
+  implicit val timeout: Timeout = Timeout(5.seconds)
 
   def makeSupervisorMimic(message: String): Unit = {
 
@@ -121,6 +121,25 @@ object GraphIso {
       case None => false
       case Some(v) => conditionHoldsForSome(v)(bij => checkIfBijectionIsIsomorphism(g, h, bij))
     }
+  }
+
+  def reduceGraphsByIsomorphism[A, B](graphs: Vector[Graph[A, B]]): Vector[Graph[A, B]] = {
+    graphs.foldLeft(Vector[Graph[A, B]]())((currentIsotypes, nextGraph) => {
+      val graphIsNew = conditionHoldsForAll(currentIsotypes)(isotype => !graphsAreIsomorphic(isotype, nextGraph))
+      
+      if (graphIsNew) currentIsotypes.appended(nextGraph)
+      else currentIsotypes
+    })
+  }
+
+  // Does NOT reduce uniqueGraphs by isomorphism
+  // Only adds a graph from newGraphs to uniqueGraphs if it is not already present in uniqueGraphs up to isomorphism
+  def assimilateNewGraphs[A, B](uniqueGraphs: Vector[Graph[A, B]], newGraphs: Vector[Graph[A, B]]): Vector[Graph[A, B]] = {
+    val newGraphsReduced: Vector[Graph[A, B]] = reduceGraphsByIsomorphism(newGraphs)
+    val newGraphsFiltered: Vector[Graph[A, B]] = newGraphsReduced.filter(h => {
+      conditionHoldsForAll(uniqueGraphs)(g => !graphsAreIsomorphic(g, h))
+    })
+    uniqueGraphs ++ newGraphsFiltered
   }
 
 }
