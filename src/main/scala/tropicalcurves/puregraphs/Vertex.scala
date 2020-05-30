@@ -3,8 +3,8 @@ package tropicalcurves.puregraphs
 // Simple data holder where equality is based on reference
 class Vertex[A](val data: A, val name: Option[String] = None) {
   override def toString: String = name match {
-    case Some(str) => str
-    case None => s"Vector($data)"
+    case Some(str) => s"($str: $data)"
+    case None => s"Vertex($data)"
   }
 }
 
