@@ -1,7 +1,41 @@
 package tropicalcurves.graphiso
+
+import akka.actor.typed.{ActorRef, ActorSystem}
+import akka.actor.typed.scaladsl.AskPattern._
+import akka.util.Timeout
+
+import scala.concurrent.duration._
 import tropicalcurves.puregraphs._
 
+import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext
+
+
 object GraphIso {
+
+  implicit val ec: ExecutionContextExecutor = ExecutionContext.global
+
+
+//  implicit val isoSupervisor: ActorSystem[IsoMessage] = ActorSystem(IsomorphismCheckSupervisor(), "IsoSupervisor")
+//  implicit val ec: ExecutionContextExecutor = isoSupervisor.executionContext
+//  implicit val timeout: Timeout = Timeout(5.seconds)
+//
+//  def makeSupervisorMimic(message: String): Unit = {
+//
+////    val result: Future[IsoMessage] = isoSupervisor.ask((ref: ActorRef[IsoMessage]) => Mimic(message, ref))
+////    result.onComplete {
+////      case Success(Mimic2(msg)) => println(s"Received back $msg")
+////      case _ => println("Noooooooooo!!!!!!!")
+////    }
+//  }
+//
+//  def printGraphs[A, B](graphs: Vector[Graph[A, B]]): Unit = {
+//    isoSupervisor ! ReduceGraphsByIsomorphism(graphs)
+//  }
+
+//  def shutdownSystem(): Unit = isoSupervisor.terminate()
+
 
   // Type A should be the characteristic of a vertex
   // Type B should be Vertex
@@ -90,6 +124,33 @@ object GraphIso {
       case None => false
       case Some(v) => conditionHoldsForSome(v)(bij => checkIfBijectionIsIsomorphism(g, h, bij))
     }
+  }
+
+  def reduceGraphsByIsomorphism[A, B](graphs: Vector[Graph[A, B]]): Vector[Graph[A, B]] = {
+    graphs.foldLeft(Vector[Graph[A, B]]())((currentIsotypes, nextGraph) => {
+      val graphIsNew = conditionHoldsForAll(currentIsotypes)(isotype => !graphsAreIsomorphic(isotype, nextGraph))
+      
+      if (graphIsNew) currentIsotypes.appended(nextGraph)
+      else currentIsotypes
+    })
+  }
+
+  // Does NOT reduce uniqueGraphs by isomorphism
+  // Only adds a graph from newGraphs to uniqueGraphs if it is not already present in uniqueGraphs up to isomorphism
+  def assimilateNewGraphs[A, B](uniqueGraphs: Vector[Graph[A, B]],
+                                newGraphs: Vector[Graph[A, B]]): Future[Vector[Graph[A, B]]] = {
+    val newGraphsReduced: Vector[Future[Option[Graph[A, B]]]] = reduceGraphsByIsomorphism(newGraphs).map(h => Future {
+      if (conditionHoldsForAll(uniqueGraphs)(g => !graphsAreIsomorphic(g, h))) Some(h)
+      else None
+    })
+
+    val futureOfOptions: Future[Vector[Option[Graph[A, B]]]] = Future.sequence(newGraphsReduced)
+    val futureOfGraphs: Future[Vector[Graph[A, B]]] = futureOfOptions.map {
+      case lst => uniqueGraphs ++ lst.flatten
+      case _ => uniqueGraphs
+    }
+
+    futureOfGraphs
   }
 
 }
