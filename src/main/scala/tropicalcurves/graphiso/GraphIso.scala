@@ -8,10 +8,13 @@ import scala.concurrent.duration._
 import tropicalcurves.puregraphs._
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
-import scala.util.Success
+import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext
 
 
 object GraphIso {
+
+  implicit val ec: ExecutionContextExecutor = ExecutionContext.global
 
 
 //  implicit val isoSupervisor: ActorSystem[IsoMessage] = ActorSystem(IsomorphismCheckSupervisor(), "IsoSupervisor")
@@ -134,12 +137,19 @@ object GraphIso {
 
   // Does NOT reduce uniqueGraphs by isomorphism
   // Only adds a graph from newGraphs to uniqueGraphs if it is not already present in uniqueGraphs up to isomorphism
-  def assimilateNewGraphs[A, B](uniqueGraphs: Vector[Graph[A, B]], newGraphs: Vector[Graph[A, B]]): Vector[Graph[A, B]] = {
-    val newGraphsReduced: Vector[Graph[A, B]] = reduceGraphsByIsomorphism(newGraphs)
-    val newGraphsFiltered: Vector[Graph[A, B]] = newGraphsReduced.filter(h => {
-      conditionHoldsForAll(uniqueGraphs)(g => !graphsAreIsomorphic(g, h))
+  def assimilateNewGraphs[A, B](uniqueGraphs: Vector[Graph[A, B]], newGraphs: Vector[Graph[A, B]]): Future[Vector[Graph[A, B]]] = {
+    val newGraphsReduced: Vector[Future[Option[Graph[A, B]]]] = reduceGraphsByIsomorphism(newGraphs).map(h => Future {
+      if (conditionHoldsForAll(uniqueGraphs)(g => !graphsAreIsomorphic(g, h))) Some(h)
+      else None
     })
-    uniqueGraphs ++ newGraphsFiltered
+
+    val futureOfOptions: Future[Vector[Option[Graph[A, B]]]] = Future.sequence(newGraphsReduced)
+    val futureOfGraphs: Future[Vector[Graph[A, B]]] = futureOfOptions.map {
+      case lst => uniqueGraphs ++ lst.flatten
+      case _ => uniqueGraphs
+    }
+
+    futureOfGraphs
   }
 
 }
