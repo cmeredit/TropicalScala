@@ -3,14 +3,19 @@ package tropicalcurves.puregraphs
 // Type A: Data held by vertices
 // Type B: Lengths of edges
 class UndirectedGraph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], val legs: Set[Leg[A]]) {
-  val vertices: Set[Vertex[A]] = adjacency.keySet ++ legs.flatMap(_.vertices)
+  val vertices: Set[Vertex[A]] = {
+    val keys = adjacency.keySet
+    val values = adjacency.toSet.flatMap(_._2.map(_._1))
+    val roots = legs.flatMap(_.vertices)
+    keys ++ values ++ roots
+  }
   val numVertices: Int = vertices.size
   val numEdges: Int = adjacency.map(_._2.size).sum
   val numLegs: Int = legs.size
 
   val verticesByCharacteristic: Map[(Int, Int, A), Set[Vertex[A]]] = {
     val keys: Set[(Int, Int, A)] = vertices.map(v => (edgeDegree(v), legDegree(v), v.data))
-    keys.map(k => k -> vertices.filter(v => (k == (edgeDegree(v), legDegree(v), v.data)))).toMap
+    keys.map(k => k -> vertices.filter(v => k == (edgeDegree(v), legDegree(v), v.data))).toMap
   }
 
   val numVerticesWithCharacteristic: Map[(Int, Int, A), Int] = verticesByCharacteristic.map(kv => kv._1 -> kv._2.size)
