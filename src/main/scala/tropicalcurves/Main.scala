@@ -31,8 +31,8 @@ object Main extends App {
     val v3 = Vertex(1, Some("v3"))
     val adjacency = Map(
       v1 -> Set((v1, 1.0), (v2, 1.0), (v3, 1.0)),
-      v2 -> Set((v1, 1.0), (v3, 1.0)),
-      v3 -> Set((v1, 1.0), (v2, 1.0))
+      v2 -> Set((v3, 1.0)),
+      v3 -> Set[(Vertex[Int], Double)]()
     )
     val legs = Set(new Leg(v1, Some("leg 1")))
     val graph = new UndirectedGraph(adjacency, legs)
