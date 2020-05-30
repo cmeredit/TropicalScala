@@ -5,7 +5,9 @@ package tropicalcurves.puregraphs
 class UndirectedGraph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], val legs: Set[Leg[A]]) {
   val vertices: Set[Vertex[A]] = {
     val keys = adjacency.keySet
-    val values = adjacency.toSet.flatMap(_._2.map(_._1))
+    val values = adjacency.toSet.flatMap((kv: (Vertex[A], Set[(Vertex[A], B)])) => {
+      kv._2.map(pair => pair._1)
+    })
     val roots = legs.flatMap(_.vertices)
     keys ++ values ++ roots
   }
