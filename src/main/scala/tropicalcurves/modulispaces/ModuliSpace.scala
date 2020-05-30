@@ -41,4 +41,18 @@ class ModuliSpace(val g: Int, val n: Int) {
     }
   }
 
+  def getSplittingSpecialization(g: Graph[Int, Double], v: Vertex[Int], g1: Int, g2: Int,
+                                 S: Set[Vertex[Int]], T: Set[Vertex[Int]]): Option[Graph[Int, Double]] = {
+    val canSplit = g.vertices.contains(v) && // g must have v as a vertex
+    g.adjacentVertices(v) == S ++ T && // S and T must cover the adjacent ????? of v
+    S.intersect(T).isEmpty &&
+    g1 >= 0 && g2 >=0 && v.data == g1 + g2 &&
+    {if (g1 == 0) S.size >= 2 else true} &&
+    {if (g2 == 0) T.size >= 2 else true}
+
+    None
+
+
+  }
+
 }
