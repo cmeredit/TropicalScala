@@ -14,24 +14,24 @@ import scala.util.Success
 object GraphIso {
 
 
-  implicit val isoSupervisor: ActorSystem[IsoMessage] = ActorSystem(IsomorphismCheckSupervisor(), "IsoSupervisor")
-  implicit val ec: ExecutionContextExecutor = isoSupervisor.executionContext
-  implicit val timeout: Timeout = Timeout(5.seconds)
+//  implicit val isoSupervisor: ActorSystem[IsoMessage] = ActorSystem(IsomorphismCheckSupervisor(), "IsoSupervisor")
+//  implicit val ec: ExecutionContextExecutor = isoSupervisor.executionContext
+//  implicit val timeout: Timeout = Timeout(5.seconds)
+//
+//  def makeSupervisorMimic(message: String): Unit = {
+//
+////    val result: Future[IsoMessage] = isoSupervisor.ask((ref: ActorRef[IsoMessage]) => Mimic(message, ref))
+////    result.onComplete {
+////      case Success(Mimic2(msg)) => println(s"Received back $msg")
+////      case _ => println("Noooooooooo!!!!!!!")
+////    }
+//  }
+//
+//  def printGraphs[A, B](graphs: Vector[Graph[A, B]]): Unit = {
+//    isoSupervisor ! ReduceGraphsByIsomorphism(graphs)
+//  }
 
-  def makeSupervisorMimic(message: String): Unit = {
-
-//    val result: Future[IsoMessage] = isoSupervisor.ask((ref: ActorRef[IsoMessage]) => Mimic(message, ref))
-//    result.onComplete {
-//      case Success(Mimic2(msg)) => println(s"Received back $msg")
-//      case _ => println("Noooooooooo!!!!!!!")
-//    }
-  }
-
-  def printGraphs[A, B](graphs: Vector[Graph[A, B]]): Unit = {
-    isoSupervisor ! ReduceGraphsByIsomorphism(graphs)
-  }
-
-  def shutdownSystem(): Unit = isoSupervisor.terminate()
+//  def shutdownSystem(): Unit = isoSupervisor.terminate()
 
 
   // Type A should be the characteristic of a vertex
