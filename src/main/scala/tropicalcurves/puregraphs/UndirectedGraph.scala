@@ -2,10 +2,10 @@ package tropicalcurves.puregraphs
 
 // Type A: Data held by vertices
 // Type B: Lengths of edges
-class UndirectedGraph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], val legs: Set[Leg[A]]) {
+class UndirectedGraph[A, B](val adjacency: Map[Vertex[A], Vector[(Vertex[A], B)]], val legs: Set[Leg[A]]) {
   val vertices: Set[Vertex[A]] = {
     val keys = adjacency.keySet
-    val values = adjacency.toSet.flatMap((kv: (Vertex[A], Set[(Vertex[A], B)])) => {
+    val values = adjacency.toSet.flatMap((kv: (Vertex[A], Vector[(Vertex[A], B)])) => {
       kv._2.map(pair => pair._1)
     })
     val roots = legs.flatMap(_.vertices)
@@ -23,7 +23,7 @@ class UndirectedGraph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], 
   val numVerticesWithCharacteristic: Map[(Int, Int, A), Int] = verticesByCharacteristic.map(kv => kv._1 -> kv._2.size)
 
   def filterOutVertices(verts: Set[Vertex[A]]): UndirectedGraph[A, B] = {
-    val newAdjacency: Map[Vertex[A], Set[(Vertex[A], B)]] = adjacency
+    val newAdjacency: Map[Vertex[A], Vector[(Vertex[A], B)]] = adjacency
       .filterNot(kv => verts.contains(kv._1)) // Filter out verts from the keys
       .map(kv => kv._1 -> kv._2.filterNot(kv => verts.contains(kv._1))) // Filter out verts from the values
     val newLegs: Set[Leg[A]] = legs.filterNot(leg => verts.contains(leg.root)) // Filter out legs with their root in vert
@@ -80,13 +80,13 @@ class UndirectedGraph[A, B](val adjacency: Map[Vertex[A], Set[(Vertex[A], B)]], 
     })
   }
 
-  def adjacentVertices(v: Vertex[A]): Set[Vertex[A]] = if (adjacency.keySet.contains(v)) {
-    adjacency(v).map(_._1) ++ adjacency.keySet.filter(vert => adjacency(vert).map(_._1).contains(v))
+  def adjacentVertices(v: Vertex[A]): Vector[Vertex[A]] = if (adjacency.keySet.contains(v)) {
+    adjacency(v).map(_._1) ++ adjacency.keySet.filter(vert => adjacency(vert).map(_._1).contains(v)).toVector
   } else {
-    adjacency.keySet.filter(vert => adjacency(vert).map(_._1).contains(v))
+    adjacency.keySet.filter(vert => adjacency(vert).map(_._1).contains(v)).toVector
   }
 
-  def adjacentDistinctVertices(v: Vertex[A]): Set[Vertex[A]] = adjacentVertices(v) - v
+  def adjacentDistinctVertices(v: Vertex[A]): Vector[Vertex[A]] = adjacentVertices(v).filter(_ != v)
 
   // Counts the number of endpoints of finite edges at v: Number of things v points to, plus number of things that point
   // to v

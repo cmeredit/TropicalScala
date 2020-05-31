@@ -30,16 +30,16 @@ object Main extends App {
     val v2 = Vertex(0, Some("v2"))
     val v3 = Vertex(1, Some("v3"))
     val adjacency = Map(
-      v1 -> Set((v1, 1.0), (v2, 1.0), (v3, 1.0)),
-      v2 -> Set((v3, 1.0)),
-      v3 -> Set[(Vertex[Int], Double)]()
+      v1 -> Vector((v1, 1.0), (v2, 1.0), (v3, 1.0)),
+      v2 -> Vector((v3, 1.0)),
+      v3 -> Vector[(Vertex[Int], Double)]()
     )
     val legs = Set(new Leg(v1, Some("leg 1")))
     val graph = new UndirectedGraph(adjacency, legs)
 
     val myModuliSpace = new ModuliSpace(1, 2)
     println(s"My graph:\n$graph")
-    println(s"\n\nGR at v3:\n${myModuliSpace.getGenusSpecialization(graph, v3)}")
+    println(s"\n\nGR at v3:\n${myModuliSpace.Specialization.getGenusSpecialization(graph, v3)}")
   }
 
 //  g1.spanningForest foreach println

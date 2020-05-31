@@ -16,12 +16,11 @@ class Specs extends FlatSpec with Matchers {
     val leg1 = new Leg(v5, Some("Leg 1"))
     val leg2 = new Leg(v1, Some("Leg 2"))
     val graph = new UndirectedGraph[Int, Double](Map(
-      v1 -> Set((v1, 1.0), (v2, 1.0), (v4, 1.0)),
-      v2 -> Set((v1, 1.0)),
-      v3 -> Set((v4, 1.0)),
-      v4 -> Set((v3, 1.0), (v1, 1.0)),
-      v5 -> Set()),
-      Set(leg1, leg2))
+          v1 -> Vector((v1, 1.0), (v2, 1.0), (v4, 1.0)),
+          v2 -> Vector((v1, 1.0)),
+          v3 -> Vector((v4, 1.0)),
+          v4 -> Vector((v3, 1.0), (v1, 1.0)),
+          v5 -> Vector()), Set(leg1, leg2))
 
     assert(GraphIso.graphsAreIsomorphic(graph, graph))
   }

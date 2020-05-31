@@ -4,7 +4,7 @@ import tropicalcurves.graphiso._
 import tropicalcurves.puregraphs._
 
 class ModuliSpace(val g: Int, val n: Int) {
-  
+
   object Specialization {
     def getGenusSpecialization(g: UndirectedGraph[Int, Double], v: Vertex[Int]): Option[UndirectedGraph[Int, Double]] = {
       if (!g.vertices.contains(v) || v.data < 1) None
@@ -19,7 +19,7 @@ class ModuliSpace(val g: Int, val n: Int) {
             else leg
           }}
 
-          val mappedAdjacency: Map[Vertex[Int], Set[(Vertex[Int], Double)]] = g.adjacency.map(kv => {
+          val mappedAdjacency: Map[Vertex[Int], Vector[(Vertex[Int], Double)]] = g.adjacency.map(kv => {
             val (vert, adj) = kv
             val newKey = if (vert == v) newVert else vert
             val newVal = adj.map(vl => {
@@ -40,6 +40,13 @@ class ModuliSpace(val g: Int, val n: Int) {
         })
         else None
       }
+    }
+
+    private def partitionAdjacency(adj: Map[Vertex[Int], Set[(Vertex[Int], Double)]],
+                                   baseVert: Vertex[Int],
+                                   newVert1: Vertex[Int],
+                                   newVert2: Vertex[Int]): Vector[Map[Vertex[Int], Set[(Vertex[Int], Double)]]] = {
+      ???
     }
 
     def getSplittingSpecialization(g: UndirectedGraph[Int, Double], v: Vertex[Int], g1: Int, g2: Int,
