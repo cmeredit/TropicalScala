@@ -42,37 +42,48 @@ class ModuliSpace(val g: Int, val n: Int) {
       }
     }
 
-    private def partitionAdjacency(adj: Map[Vertex[Int], Set[(Vertex[Int], Double)]],
+    private def partitionAdjacency(adj: Map[Vertex[Int], Vector[(Vertex[Int], Double)]],
                                    baseVert: Vertex[Int],
                                    newVert1: Vertex[Int],
                                    newVert2: Vertex[Int]): Vector[Map[Vertex[Int], Set[(Vertex[Int], Double)]]] = {
+      type AdjMap = Map[Vertex[Int], Vector[(Vertex[Int], Double)]]
+      // First handle the case where baseVert points to other vertices
       if (adj.keySet.contains(baseVert) && adj(baseVert).nonEmpty) {
         val vertToFlip = adj(baseVert).head
-        val updatedAdj: Map[Vertex[Int], Set[(Vertex[Int], Double)]] = adj
+        val updatedAdj: AdjMap = adj
           .map({ // Remove vertToFlip from adj(baseVert)
             case (baseVert, _) => (baseVert, adj(baseVert).tail)
             case x => x
           })
 
-        val newAdj1: Map[Vertex[Int], Set[(Vertex[Int], Double)]] = if (updatedAdj.keySet.contains(newVert1)) {
+        val newAdj1: AdjMap = if (updatedAdj.keySet.contains(newVert1)) {
           updatedAdj.map({
-            case (newVert1, _) => (newVert1, updatedAdj(newVert1) + vertToFlip)
+            case (newVert1, _) => (newVert1, updatedAdj(newVert1).appended(vertToFlip))
             case x => x
           })
         } else updatedAdj ++ Map(newVert1 -> Set(vertToFlip))
 
-        val newAdj2: Map[Vertex[Int], Set[(Vertex[Int], Double)]] = if (updatedAdj.keySet.contains(newVert2)) {
+        val newAdj2: AdjMap = if (updatedAdj.keySet.contains(newVert2)) {
           updatedAdj.map({
-            case (newVert2, _) => (newVert2, updatedAdj(newVert2) + vertToFlip)
+            case (newVert2, _) => (newVert2, updatedAdj(newVert2).appended(vertToFlip))
             case x => x
           })
         } else updatedAdj ++ Map(newVert2 -> Set(vertToFlip))
-        
-        partitionAdjacency(newAdj1, baseVert, newVert1, newVert2) ++ partitionAdjacency(newAdj1, baseVert, newVert1, newVert2)
 
-      } else if (adj.toSet.flatMap(_._2).map(_._1).contains(baseVert)) {
-        ???
-      } else Vector()
+        partitionAdjacency(newAdj1, baseVert, newVert1, newVert2) ++ partitionAdjacency(newAdj2, baseVert, newVert1, newVert2)
+      }
+      // Then handle the case where baseVert is pointed to
+      else if (adj.toSet.flatMap(_._2).map(_._1).contains(baseVert)) {
+        // TODO: Fold left with a flag and only flip one instance of baseVert to newVert1
+        val newAdj1: AdjMap = adj.toVector.foldLeft[AdjMap](Map())(???)
+
+        // TODO: Fold left with a flag and only flip one instance of baseVert to newVert2
+        val newAdj2: AdjMap = adj.toVector.foldLeft[AdjMap](Map())(???)
+
+        partitionAdjacency(newAdj1, baseVert, newVert1, newVert2) ++ partitionAdjacency(newAdj2, baseVert, newVert1, newVert2)
+      }
+      // And finally, handle the case where baseVert isn't pointed to or from
+      else Vector()
     }
 
     def getSplittingSpecialization(g: UndirectedGraph[Int, Double], v: Vertex[Int], g1: Int, g2: Int,
