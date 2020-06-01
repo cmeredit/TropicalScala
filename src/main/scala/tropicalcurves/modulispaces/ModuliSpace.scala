@@ -75,11 +75,11 @@ class ModuliSpace(val g: Int, val n: Int) {
       // Then handle the case where baseVert is pointed to
       else if (adj.toSet.flatMap(_._2).map(_._1).contains(baseVert)) {
 
-        def onceRemoved(m: AdjMap, elt: Vertex[Int]): Option[(AdjMap, (Vertex[Int], Double))] = {
-          adj.find(_._2.map(_._1).contains(baseVert)) match {
+        def onceRemoved(m: AdjMap, elt: Vertex[Int]): Option[(AdjMap, Vertex[Int], (Vertex[Int], Double))] = {
+          adj.find(_._2.map(_._1).contains(elt)) match {
             case Some((keyToUpdate, valToUpdate)) => Some({
               val adjacentEdges = m(keyToUpdate)
-              val edgeToUpdate = adjacentEdges.find(_._1 == baseVert).get
+              val edgeToUpdate = adjacentEdges.find(_._1 == elt).get
               val indexToUpdate = adjacentEdges.indexOf(edgeToUpdate)
 
               def removedAtIndex[A](vec: Vector[A], index: Int): Vector[A] = {
@@ -89,22 +89,25 @@ class ModuliSpace(val g: Int, val n: Int) {
               (m.transform((k, v) => {
                 if (k == keyToUpdate) removedAtIndex(valToUpdate, indexToUpdate)
                 else v
-              }), edgeToUpdate)
+              }), keyToUpdate, edgeToUpdate)
             })
             case None => None
           }
         }
 
         // TODO: Fold left with a flag and only flip one instance of baseVert to newVert1
-        val (updatedAdj, removedEdge): (AdjMap, (Vertex[Int], Double)) = onceRemoved(adj, baseVert).get
+        val (updatedAdj, sourceVertex, removedEdge): (AdjMap, Vertex[Int], (Vertex[Int], Double)) = onceRemoved(adj, baseVert).get
+
+        val replacementEdge1 = (newVert1, removedEdge._2)
+        val replacementEdge2 = (newVert2, removedEdge._2)
 
         val newAdj1: AdjMap = if (updatedAdj.keySet.contains(newVert1)) {
-          updatedAdj.transform((k, v) => if (k == newVert1) v.appended(removedEdge) else v)
-        } else updatedAdj ++ Map(newVert1 -> Vector(removedEdge))
+          updatedAdj.transform((k, v) => if (k == sourceVertex) v.appended(replacementEdge1) else v)
+        } else updatedAdj ++ Map(sourceVertex -> Vector(replacementEdge1))
 
         val newAdj2: AdjMap = if (updatedAdj.keySet.contains(newVert2)) {
-          updatedAdj.transform((k, v) => if (k == newVert2) v.appended(removedEdge) else v)
-        } else updatedAdj ++ Map(newVert2 -> Vector(removedEdge))
+          updatedAdj.transform((k, v) => if (k == sourceVertex) v.appended(replacementEdge2) else v)
+        } else updatedAdj ++ Map(sourceVertex -> Vector(replacementEdge2))
 
         partitionAdjacency(newAdj1, baseVert, newVert1, newVert2) ++ partitionAdjacency(newAdj2, baseVert, newVert1, newVert2)
       }
