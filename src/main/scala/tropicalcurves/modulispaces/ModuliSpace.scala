@@ -112,6 +112,24 @@ class ModuliSpace(val g: Int, val n: Int) {
       }
     }
 
+    private def partitionLegs(legs: Set[Leg[Int]],
+                              baseVert: Vertex[Int],
+                              newVert1: Vertex[Int],
+                              newVert2: Vertex[Int]): Vector[Set[Leg[Int]]] = {
+      legs.find(_.root == baseVert) match {
+        case Some(legToModify) =>
+          val newLeg1 = new Leg(newVert1, legToModify.name)
+          val newLeg2 = new Leg(newVert2, legToModify.name)
+
+          val newLegs1 = legs.filter(_ != legToModify) + newLeg1
+          val newLegs2 = legs.filter(_ != legToModify) + newLeg2
+
+          partitionLegs(newLegs1, baseVert, newVert1, newVert2) ++ partitionLegs(newLegs2, baseVert, newVert1, newVert2)
+
+        case None => Vector(legs)
+      }
+    }
+
     def getSplittingSpecializations(g: UndirectedGraph[Int, Double],
                                     v: Vertex[Int],
                                     g1: Int,
@@ -131,8 +149,19 @@ class ModuliSpace(val g: Int, val n: Int) {
         }
 
         val readyPartitions = basePartitions.map(cleanPartition)
+        val readyLegs = partitionLegs(g.legs, v, newVert1, newVert2)
 
-        Some(readyPartitions.map(newAdj => new UndirectedGraph(newAdj, g.legs)))
+
+
+        val allGraphs = for (adj <- readyPartitions;
+             legs <- readyLegs)
+          yield new UndirectedGraph(adj, legs)
+
+        Some(allGraphs.filter(graph => {
+          val newVert1Good = if (newVert1.data == 0) graph.degree(newVert1) >= 3 else true
+          val newVert2Good = if (newVert2.data == 0) graph.degree(newVert2) >= 3 else true
+          newVert1Good && newVert2Good
+        }))
       } else None
     }
   }
