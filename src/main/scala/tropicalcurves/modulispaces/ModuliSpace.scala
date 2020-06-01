@@ -96,11 +96,15 @@ class ModuliSpace(val g: Int, val n: Int) {
         }
 
         // TODO: Fold left with a flag and only flip one instance of baseVert to newVert1
-        val newAdj1: AdjMap = adj.toVector.foldLeft[AdjMap](Map())(???)
+        val (updatedAdj, removedEdge): (AdjMap, (Vertex[Int], Double)) = onceRemoved(adj, baseVert).get
 
+        val newAdj1: AdjMap = if (updatedAdj.keySet.contains(newVert1)) {
+          updatedAdj.transform((k, v) => if (k == newVert1) v.appended(removedEdge) else v)
+        } else updatedAdj ++ Map(newVert1 -> Vector(removedEdge))
 
-        // TODO: Fold left with a flag and only flip one instance of baseVert to newVert2
-        val newAdj2: AdjMap = adj.toVector.foldLeft[AdjMap](Map())(???)
+        val newAdj2: AdjMap = if (updatedAdj.keySet.contains(newVert2)) {
+          updatedAdj.transform((k, v) => if (k == newVert2) v.appended(removedEdge) else v)
+        } else updatedAdj ++ Map(newVert2 -> Vector(removedEdge))
 
         partitionAdjacency(newAdj1, baseVert, newVert1, newVert2) ++ partitionAdjacency(newAdj2, baseVert, newVert1, newVert2)
       }
