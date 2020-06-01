@@ -4,9 +4,23 @@ import tropicalcurves.graphiso._
 import tropicalcurves.puregraphs._
 
 class ModuliSpace(val g: Int, val n: Int) {
+  type AdjMap = Map[Vertex[Int], Vector[(Vertex[Int], Double)]]
+
+  private def getSpecializations(graphs: Vector[UndirectedGraph[Int, Double]]): Vector[UndirectedGraph[Int, Double]] = {
+    ???
+  }
+
+  def getSpace: Vector[UndirectedGraph[Int, Double]] = {
+    val baseVert = Vertex(g, Some("Base Vertex"))
+    val adj: AdjMap = Map(baseVert -> Vector())
+    val legs = (0 until n).map(num => new Leg[Int](baseVert, Some(s"Leg $num"))).toSet
+    val seedGraph = new UndirectedGraph[Int, Double](adj, legs)
+
+    getSpecializations(Vector(seedGraph))
+    
+  }
 
   object Specialization {
-    type AdjMap = Map[Vertex[Int], Vector[(Vertex[Int], Double)]]
 
     def getGenusSpecialization(g: UndirectedGraph[Int, Double], v: Vertex[Int]): Option[UndirectedGraph[Int, Double]] = {
       if (!g.vertices.contains(v) || v.data < 1) None
