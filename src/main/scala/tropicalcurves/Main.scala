@@ -40,6 +40,26 @@ object Main extends App {
     val myModuliSpace = new ModuliSpace(1, 2)
     println(s"My graph:\n$graph")
     println(s"\n\nGR at v3:\n${myModuliSpace.Specialization.getGenusSpecialization(graph, v3)}")
+
+//    myModuliSpace.Specialization.getSplittingSpecializations(graph, v3, 0, 1) match {
+//      case Some(vec) => for (g <- vec) {
+//        println(s"\n\nCurrent graph: \n$g")
+//        println("\nEasy to read adjacency:")
+//        g.adjacency foreach println
+//      }
+//      case None => assert(false)
+//    }
+//    val newVert1 = Vertex(0, Some("New vertex 1"))
+//    val newVert2 = Vertex(0, Some("New vertex 2"))
+//    println("\n\nAdjacency partitions: ")
+//    myModuliSpace.Specialization.partitionAdjacency(graph.adjacency, v2, newVert1, newVert2).foreach(x => println(x.filter(_._1 != v2)))
+
+    val startTime = System.nanoTime()
+    val m12Curves = myModuliSpace.getSpace
+    val endTime = System.nanoTime()
+    println(s"M-1-2 apparently has ${m12Curves.size} curves!")
+    println(s"Generation took ${endTime - startTime} nanoseconds, or ${(endTime - startTime).toDouble / 1_000_000_000.0} seconds!")
+    m12Curves.foreach(g => println(s"\n\n$g"))
   }
 
 //  g1.spanningForest foreach println

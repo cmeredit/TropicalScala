@@ -153,4 +153,21 @@ object GraphIso {
     futureOfGraphs
   }
 
+  def assimilateNewGraphsType2[A, B](uniqueGraphs: Vector[UndirectedGraph[A, B]],
+                                newGraphs: Vector[UndirectedGraph[A, B]]): Vector[Future[Option[UndirectedGraph[A, B]]]] = {
+    val newGraphsReduced: Vector[Future[Option[UndirectedGraph[A, B]]]] = {
+      println("Reducing new graphs by isomorphism")
+      val reduced = reduceGraphsByIsomorphism(newGraphs)
+      println("Done reducing new graphs!")
+      reduced
+    }.map(h => {
+      Future {
+        if (conditionHoldsForAll(uniqueGraphs)(g => !graphsAreIsomorphic(g, h))) Some(h)
+        else None
+      }
+    })
+
+    newGraphsReduced
+  }
+
 }

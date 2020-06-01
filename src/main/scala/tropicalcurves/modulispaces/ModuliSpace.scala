@@ -3,11 +3,29 @@ package tropicalcurves.modulispaces
 import tropicalcurves.graphiso._
 import tropicalcurves.puregraphs._
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
 class ModuliSpace(val g: Int, val n: Int) {
   type AdjMap = Map[Vertex[Int], Vector[(Vertex[Int], Double)]]
 
   private def getSpecializations(graphs: Vector[UndirectedGraph[Int, Double]]): Vector[UndirectedGraph[Int, Double]] = {
-    ???
+    val genusReductions: Vector[UndirectedGraph[Int, Double]] = graphs.flatMap(
+      g => g.vertices.flatMap(v => Specialization.getGenusSpecialization(g, v))
+    )
+    val splittingSpecializations: Vector[UndirectedGraph[Int, Double]] = graphs.flatMap(
+      g => g.vertices.flatMap(v => {
+        (0 until v.data).map(g1 => Specialization.getSplittingSpecializations(g, v, g1, v.data - g1))
+      }).flatten.toVector.flatten
+    )
+
+    val newGraphs = genusReductions ++ splittingSpecializations
+    println(s"Got ${newGraphs.size} new graphs! Assimilating now...")
+//    val assimilated = Await.result(GraphIso.assimilateNewGraphs(graphs, newGraphs), 3.seconds)
+    val assimilated = GraphIso.assimilateNewGraphsType2(graphs, newGraphs).flatMap(f => Await.result(f, 3.seconds))
+    println(s"Done assimilating graphs...")
+    val actuallyNewGraphs = assimilated.filter(h => !graphs.contains(h))
+    graphs ++ actuallyNewGraphs ++ (if (actuallyNewGraphs.nonEmpty) getSpecializations(actuallyNewGraphs) else Vector())
   }
 
   def getSpace: Vector[UndirectedGraph[Int, Double]] = {
@@ -16,8 +34,8 @@ class ModuliSpace(val g: Int, val n: Int) {
     val legs = (0 until n).map(num => new Leg[Int](baseVert, Some(s"Leg $num"))).toSet
     val seedGraph = new UndirectedGraph[Int, Double](adj, legs)
 
-    getSpecializations(Vector(seedGraph))
-    
+    getSpecializations(Vector(seedGraph)).distinct
+
   }
 
   object Specialization {
