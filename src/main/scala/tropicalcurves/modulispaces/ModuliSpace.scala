@@ -6,6 +6,8 @@ import tropicalcurves.puregraphs._
 class ModuliSpace(val g: Int, val n: Int) {
 
   object Specialization {
+    type AdjMap = Map[Vertex[Int], Vector[(Vertex[Int], Double)]]
+
     def getGenusSpecialization(g: UndirectedGraph[Int, Double], v: Vertex[Int]): Option[UndirectedGraph[Int, Double]] = {
       if (!g.vertices.contains(v) || v.data < 1) None
       else {
@@ -42,11 +44,11 @@ class ModuliSpace(val g: Int, val n: Int) {
       }
     }
 
-    def partitionAdjacency(adj: Map[Vertex[Int], Vector[(Vertex[Int], Double)]],
+    private def partitionAdjacency(adj: Map[Vertex[Int], Vector[(Vertex[Int], Double)]],
                                    baseVert: Vertex[Int],
                                    newVert1: Vertex[Int],
                                    newVert2: Vertex[Int]): Vector[Map[Vertex[Int], Vector[(Vertex[Int], Double)]]] = {
-      type AdjMap = Map[Vertex[Int], Vector[(Vertex[Int], Double)]]
+
       // First handle the case where baseVert points to other vertices
       if (adj.keySet.contains(baseVert) && adj(baseVert).nonEmpty) {
         val vertToFlip = adj(baseVert).head
@@ -60,10 +62,10 @@ class ModuliSpace(val g: Int, val n: Int) {
           updatedAdj.transform((k, v) => if (k == newVert2) v.appended(vertToFlip) else v)
         } else updatedAdj ++ Map(newVert2 -> Vector(vertToFlip))
 
-        println(s"First case original adj: $adj")
-        println(s"First case updated adj: $updatedAdj")
-        println(s"New adj 1: $newAdj1")
-        println(s"New adj 2: $newAdj2")
+//        println(s"First case original adj: $adj")
+//        println(s"First case updated adj: $updatedAdj")
+//        println(s"New adj 1: $newAdj1")
+//        println(s"New adj 2: $newAdj2")
 
         partitionAdjacency(newAdj1, baseVert, newVert1, newVert2) ++ partitionAdjacency(newAdj2, baseVert, newVert1, newVert2)
       }
@@ -91,8 +93,8 @@ class ModuliSpace(val g: Int, val n: Int) {
         }
 
         val (updatedAdj, sourceVertex, removedEdge): (AdjMap, Vertex[Int], (Vertex[Int], Double)) = onceRemoved(adj, baseVert).get
-        println(s"\nRemoving $baseVert once from $adj")
-        println(s"Got updated adj: $updatedAdj\nGot source of removal: $sourceVertex\nGot removed edge: $removedEdge\n")
+//        println(s"\nRemoving $baseVert once from $adj")
+//        println(s"Got updated adj: $updatedAdj\nGot source of removal: $sourceVertex\nGot removed edge: $removedEdge\n")
 
         val replacementEdge1 = (newVert1, removedEdge._2)
         val replacementEdge2 = (newVert2, removedEdge._2)
@@ -110,18 +112,28 @@ class ModuliSpace(val g: Int, val n: Int) {
       }
     }
 
-    def getSplittingSpecialization(g: UndirectedGraph[Int, Double], v: Vertex[Int], g1: Int, g2: Int,
-                                   S: Set[Vertex[Int]], T: Set[Vertex[Int]]): Option[UndirectedGraph[Int, Double]] = {
-      val canSplit = g.vertices.contains(v) && // g must have v as a vertex
-        g.adjacentVertices(v).toSet == S ++ T && // S and T must cover the adjacent ????? of v
-        S.intersect(T).isEmpty &&
-        g1 >= 0 && g2 >=0 && v.data == g1 + g2 &&
-        {if (g1 == 0) S.size >= 2 else true} &&
-        {if (g2 == 0) T.size >= 2 else true}
+    def getSplittingSpecializations(g: UndirectedGraph[Int, Double],
+                                    v: Vertex[Int],
+                                    g1: Int,
+                                    g2: Int): Option[Vector[UndirectedGraph[Int, Double]]] = {
+      val canSplit = g.vertices.contains(v) && g1 >= 0 && g2 >=0 && v.data == g1 + g2
 
-      None
+      if (canSplit) {
+        val newVert1 = Vertex(g1, Some(s"(First split of $v)"))
+        val newVert2 = Vertex(g2, Some(s"(Second split of $v)"))
+        val basePartitions = partitionAdjacency(g.adjacency, v, newVert1, newVert2)
 
+        def cleanPartition(p: AdjMap): AdjMap = {
+          (p ++ (if (!p.keySet.contains(newVert1)) Map(newVert1 -> Vector()) else Map()) ++ // Ensure newVert1 is a key
+              (if (!p.keySet.contains(newVert2)) Map(newVert2 -> Vector()) else Map())) // Ensure newVert2 is a key
+              .transform((k, v) => if (k == newVert1) v.appended((newVert2, 1.0)) else v) // Connect newVert1 to newVert2
+              .filter(_._1 != v) // Make sure v is no longer a key
+        }
 
+        val readyPartitions = basePartitions.map(cleanPartition)
+
+        Some(readyPartitions.map(newAdj => new UndirectedGraph(newAdj, g.legs)))
+      } else None
     }
   }
 }
